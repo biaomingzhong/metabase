@@ -5,12 +5,11 @@ import Icon from "metabase/components/Icon";
 export const LegendItemRoot = styled.div`
   display: flex;
   align-items: center;
-  min-width: 0;
   overflow: hidden;
+  text-decoration: ${({ isCrossed }) => (isCrossed ? "line-through" : "none")};
 
-  &:not(:first-of-type) {
-    margin-top: ${({ isVertical }) => (isVertical ? "0.5rem" : "")};
-    margin-left: ${({ isVertical }) => (isVertical ? "" : "0.75rem")};
+  &:not(:first-child) {
+    margin-left: ${({ showTitle }) => (showTitle ? "0.75rem" : "5px")};
   }
 `;
 
@@ -32,7 +31,9 @@ export const LegendItemDot = styled.div`
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
-  background-color: ${({ color }) => color};
+  background-color: ${({ color, isCrossed }) =>
+    isCrossed ? "#e0e0e0" : color};
+  border: ${({ isCrossed }) => (isCrossed ? "1px dotted grey" : "none")};
 `;
 
 export const LegendItemTitle = styled.div`

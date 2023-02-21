@@ -14,6 +14,7 @@ const MIN_WIDTH_PER_SERIES = 100;
 class LegendHeader extends Component {
   static propTypes = {
     series: PropTypes.array.isRequired,
+    visibleIndexes: PropTypes.array,
     hovered: PropTypes.object,
     onHoverChange: PropTypes.func,
     onAddSeries: PropTypes.func,
@@ -47,6 +48,7 @@ class LegendHeader extends Component {
       visualizationIsClickable,
       classNameWidgets,
       width,
+      visibleIndexes = [],
     } = this.props;
 
     const isBreakoutSeries = !!series[0].card._breakoutColumn;
@@ -87,6 +89,7 @@ class LegendHeader extends Component {
             className={cx({ "text-brand-hover": !isBreakoutSeries })}
             showDot={showDots}
             showTitle={showTitles}
+            isCrossed={!visibleIndexes.includes(+index)}
             isMuted={
               hovered && hovered.index != null && index !== hovered.index
             }
@@ -100,6 +103,7 @@ class LegendHeader extends Component {
                     onVisualizationClick({
                       ...s.clicked,
                       element: e.currentTarget,
+                      index,
                     })
                 : onChangeCardAndRun
                 ? () =>

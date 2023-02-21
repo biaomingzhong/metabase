@@ -82,6 +82,25 @@ export default class LineAreaBarChart extends Component {
 
   static minSize = { width: 4, height: 3 };
 
+  constructor(a) {
+    super(a);
+    this.state = {
+      selectedSeriesIndexes: this.props.series.map((s, i) => +i),
+      filteredSeries: this.props.series,
+      hoveredIndex: null,
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!_.isEqual(prevProps.series, this.props.series)) {
+      this.setState({
+        selectedSeriesIndexes: this.props.series.map((s, i) => +i),
+        filteredSeries: this.props.series,
+        hoveredIndex: null,
+      });
+    }
+  }
+
   static isSensible({ cols, rows }) {
     return (
       rows.length > 1 &&
@@ -210,6 +229,42 @@ export default class LineAreaBarChart extends Component {
     }
   }
 
+  proxyOnHoverChange = arg => {
+    if (arg && Number.isInteger(arg.index)) {
+      this.setState({
+        hoveredIndex: arg.index,
+      });
+      const updatedIndex = this.state.filteredSeries.findIndex(s =>
+        _.isEqual(s, this.props.series[arg.index]),
+      );
+      this.props.onHoverChange(
+        updatedIndex === -1 ? null : { index: updatedIndex },
+      );
+    } else {
+      this.props.onHoverChange(null);
+      this.setState({
+        hoveredIndex: null,
+      });
+    }
+  };
+
+  onSelectSeries = event => {
+    const { index } = event;
+    const newSelectedSeriesIndexes = this.state.selectedSeriesIndexes.includes(
+      +index,
+    )
+      ? this.state.selectedSeriesIndexes.filter(i => +i !== +index)
+      : [...this.state.selectedSeriesIndexes, +index];
+
+    this.setState({
+      selectedSeriesIndexes: newSelectedSeriesIndexes,
+      filteredSeries: this.props.series.filter((s, i) =>
+        newSelectedSeriesIndexes.includes(+i),
+      ),
+    });
+    this.props.onHoverChange(null);
+  };
+
   getFidelity() {
     const fidelity = { x: 0, y: 0 };
     const size = this.props.gridSize || { width: Infinity, height: Infinity };
@@ -297,6 +352,14 @@ export default class LineAreaBarChart extends Component {
     };
   }
 
+  proxyOnChangeCardAndRun(args) {
+    if (args && Number.isInteger(args.seriesIndex)) {
+      this.onSelectSeries({ index: args.seriesIndex });
+    } else {
+      this.props.onChangeCardAndRun(args);
+    }
+  }
+
   handleSelectTitle = () => {
     const { card, onChangeCardAndRun } = this.props;
 
@@ -309,43 +372,33 @@ export default class LineAreaBarChart extends Component {
   };
 
   handleSelectSeries = (event, index) => {
-    const {
-      card,
-      series,
-      visualizationIsClickable,
-      onEditSeries,
-      onVisualizationClick,
-      onChangeCardAndRun,
-    } = this.props;
+    const { card, series, onEditSeries, onChangeCardAndRun } = this.props;
 
     const single = series[index];
     const hasBreakout = card._breakoutColumn != null;
 
     if (onEditSeries && !hasBreakout) {
       onEditSeries(event, index);
-    } else if (single.clicked && visualizationIsClickable(single.clicked)) {
-      onVisualizationClick({
-        ...single.clicked,
-        element: event.currentTarget,
-      });
     } else if (onChangeCardAndRun) {
-      onChangeCardAndRun({
+      this.proxyOnChangeCardAndRun({
         nextCard: single.card,
         seriesIndex: index,
       });
+    } else {
+      this.onSelectSeries({ index });
     }
   };
 
   render() {
     const {
-      series,
       hovered,
       headerIcon,
       actionButtons,
       isFullscreen,
       isQueryBuilder,
-      onHoverChange,
+      onAddSeries,
       onRemoveSeries,
+      series,
       settings,
     } = this.props;
 
@@ -383,23 +436,29 @@ export default class LineAreaBarChart extends Component {
         <LegendLayout
           labels={labels}
           colors={colors}
-          hovered={hovered}
+          hovered={
+            hovered ? { ...hovered, index: this.state.hoveredIndex } : null
+          }
           hasLegend={hasLegend}
           actionButtons={!hasTitle ? actionButtons : undefined}
           isFullscreen={isFullscreen}
           isQueryBuilder={isQueryBuilder}
-          onHoverChange={onHoverChange}
+          onHoverChange={this.proxyOnHoverChange}
+          onAddSeries={!hasBreakout ? onAddSeries : undefined}
           onRemoveSeries={!hasBreakout ? onRemoveSeries : undefined}
           onSelectSeries={this.handleSelectSeries}
+          visibleIndexes={this.state.selectedSeriesIndexes}
         >
-          <CardRenderer
-            {...this.props}
-            series={orderedSeries}
-            settings={this.getSettings()}
-            className="renderer flex-full"
-            maxSeries={MAX_SERIES}
-            renderer={this.constructor.renderer}
-          />
+          {this.state.filteredSeries.length > 0 ? (
+            <CardRenderer
+              {...this.props}
+              series={this.state.filteredSeries}
+              settings={this.getSettings()}
+              className="renderer flex-full"
+              maxSeries={MAX_SERIES}
+              renderer={this.constructor.renderer}
+            />
+          ) : null}
         </LegendLayout>
       </LineAreaBarChartRoot>
     );

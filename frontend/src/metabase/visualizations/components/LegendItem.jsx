@@ -23,6 +23,7 @@ export default class LegendItem extends Component {
     showDot: true,
     showTitle: true,
     isMuted: false,
+    isCrossed: false,
     showTooltip: true,
     showDotTooltip: true,
   };
@@ -35,6 +36,7 @@ export default class LegendItem extends Component {
       showDot,
       showTitle,
       isMuted,
+      isCrossed,
       showTooltip,
       showDotTooltip,
       onMouseEnter,
@@ -50,10 +52,12 @@ export default class LegendItem extends Component {
         className={cx(
           className,
           "LegendItem",
-          "no-decoration flex align-center fullscreen-normal-text fullscreen-night-text",
+          "flex align-center fullscreen-normal-text fullscreen-night-text",
           {
             mr1: showTitle,
             muted: isMuted,
+            crossed: isCrossed && showDot,
+            "no-decoration": !isCrossed,
             "cursor-pointer": onClick,
           },
         )}
@@ -76,7 +80,8 @@ export default class LegendItem extends Component {
                 height: 13,
                 margin: 4,
                 marginRight: 8,
-                backgroundColor: color,
+                border: isCrossed && showDot ? "1px dotted grey" : "none",
+                backgroundColor: isCrossed && showDot ? "#e0e0e0" : color,
               }}
             />
           </Tooltip>

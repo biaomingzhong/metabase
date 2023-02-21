@@ -20,6 +20,7 @@ const propTypes = {
   colors: PropTypes.array.isRequired,
   hovered: PropTypes.object,
   visibleIndex: PropTypes.number,
+  visibleIndexes: PropTypes.array,
   visibleLength: PropTypes.number,
   isVertical: PropTypes.bool,
   onHoverChange: PropTypes.func,
@@ -38,6 +39,7 @@ const Legend = ({
   onHoverChange,
   onSelectSeries,
   onRemoveSeries,
+  visibleIndexes,
 }) => {
   const targetRef = useRef();
   const [isOpened, setIsOpened] = useState(null);
@@ -57,6 +59,8 @@ const Legend = ({
   const visibleLabels = labels.slice(visibleIndex, overflowIndex);
   const overflowLength = labels.length - overflowIndex;
 
+  const showTitle = visibleLabels.length < 10;
+
   return (
     <LegendRoot className={className} isVertical={isVertical}>
       {visibleLabels.map((label, index) => {
@@ -69,7 +73,10 @@ const Legend = ({
             index={itemIndex}
             color={colors[itemIndex % colors.length]}
             isMuted={hovered && itemIndex !== hovered.index}
+            showTooltip={hovered && itemIndex === hovered.index}
+            showTitle={showTitle}
             isVertical={isVertical}
+            isCrossed={!visibleIndexes.includes(+index)}
             onHoverChange={onHoverChange}
             onSelectSeries={onSelectSeries}
             onRemoveSeries={onRemoveSeries}
