@@ -11,6 +11,8 @@
 
 ## Features
 
+<div>**Bold**</div>
+
 - [Set up in five minutes](https://www.metabase.com/docs/latest/setting-up-metabase.html) (we're not kidding).
 - Let anyone on your team [ask questions](https://www.metabase.com/docs/latest/users-guide/04-asking-questions.html) without knowing SQL.
 - Use the [SQL editor](https://www.metabase.com/docs/latest/users-guide/writing-sql.html) for more complex queries.
